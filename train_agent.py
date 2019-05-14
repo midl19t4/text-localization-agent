@@ -3,8 +3,11 @@ import os
 import numpy as np
 from text_localization_environment import TextLocEnv
 from chainerrl.links.mlp import MLP
+from chainer import links as L
+from chainerrl.links import Sequence
 from chainerrl.experiments.train_agent import train_agent_with_evaluation
 import chainer
+from chainer import Chain
 from chainer import functions as F
 import chainerrl
 import logging
@@ -14,25 +17,52 @@ import time
 import re
 
 
-class CustomQFunction(
-        chainerrl.q_functions.SingleModelStateQFunctionWithDiscreteAction):
-    """Fully-connected state-input Q-function with discrete actions.
-    Args:
-        n_dim_obs: number of dimensions of observation space
-        n_dim_action: number of dimensions of action space
-        n_hidden_channels: number of hidden channels
-        n_hidden_layers: number of hidden layers
-    """
+# class CustomQFunction(
+#         chainerrl.q_functions.SingleModelStateQFunctionWithDiscreteAction):
+#     """Fully-connected state-input Q-function with discrete actions.
+#     Args:
+#         n_dim_obs: number of dimensions of observation space
+#         n_dim_action: number of dimensions of action space
+#         n_hidden_channels: number of hidden channels
+#         n_hidden_layers: number of hidden layers
+#     """
 
-    def __init__(self, ndim_obs, n_actions, n_hidden_channels,
-                 n_hidden_layers, nonlinearity=F.relu,
-                 last_wscale=1.0):
-        model = MLP(
-            in_size=ndim_obs, out_size=n_actions,
-            hidden_sizes=[n_hidden_channels] * n_hidden_layers,
-            nonlinearity=nonlinearity,
-            last_wscale=last_wscale)
-        super().__init__(model=model)
+#     def __init__(self, ndim_obs, n_actions, n_hidden_channels,
+#                  n_hidden_layers, nonlinearity=F.relu,
+#                  last_wscale=1.0):
+#         model = Sequence(
+#             # TODO: after training, serialize modified ResNet152Layers
+#             L.ResNet152Layers(),
+#             L.Linear(512, n_actions))
+#         # MLP(
+#         #     in_size=ndim_obs, out_size=n_actions,
+#         #     hidden_sizes=[n_hidden_channels] * n_hidden_layers,
+#         #     nonlinearity=nonlinearity,
+#         #     last_wscale=last_wscale)
+#         super().__init__(model=model)
+
+#     def __call__(self):
+
+class CustomModel(Chain):
+    def __init__(self, n_actions):
+        super(CustomModel, self).__init__(
+            resNet=L.ResNet152Layers(),
+            l1=L.Linear(2048, 2048),
+            l2=L.Linear(2048, 2048),
+            l3=L.Linear(2048, n_actions)
+        )
+
+    def __call__(self, x):
+        image_size = 224*224*3
+        import pdb;pdb.set_trace()
+        image_flattened = x[0][:image_size]
+        history_and_penalty = x[0][image_size:]
+
+        image = np.array([image_flattened.reshape((224, 224, 3))])
+        h1 = F.relu(self.resNet(image))
+        h2 = F.relu(self.l1(np.concatenate(h1, history_and_penalty)))
+        h3 = F.relu(self.l2(h2))
+        return F.relu(self.l3(h3))
 
 
 @click.command()
@@ -54,9 +84,10 @@ def main(steps, gpu, imagefile, boxfile, tensorboard):
 
     env = TextLocEnv(absolute_paths, bboxes, gpu)
 
-    obs_size = 2139
+    obs_size = 150619
     n_actions = env.action_space.n
-    q_func = CustomQFunction(obs_size, n_actions, n_hidden_channels=1024, n_hidden_layers=2)
+    q_func = chainerrl.q_functions.SingleModelStateQFunctionWithDiscreteAction(CustomModel(n_actions))
+    # q_func = CustomQFunction(obs_size, n_actions, n_hidden_channels=1024, n_hidden_layers=2)
     if gpu != -1:
         q_func = q_func.to_gpu(gpu)
 
