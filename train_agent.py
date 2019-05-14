@@ -2,14 +2,37 @@ import click
 import os
 import numpy as np
 from text_localization_environment import TextLocEnv
+from chainerrl.links.mlp import MLP
 from chainerrl.experiments.train_agent import train_agent_with_evaluation
 import chainer
+from chainer import functions as F
 import chainerrl
 import logging
 import sys
 from tb_chainer import SummaryWriter
 import time
 import re
+
+
+class CustomQFunction(
+        chainerrl.q_functions.SingleModelStateQFunctionWithDiscreteAction):
+    """Fully-connected state-input Q-function with discrete actions.
+    Args:
+        n_dim_obs: number of dimensions of observation space
+        n_dim_action: number of dimensions of action space
+        n_hidden_channels: number of hidden channels
+        n_hidden_layers: number of hidden layers
+    """
+
+    def __init__(self, ndim_obs, n_actions, n_hidden_channels,
+                 n_hidden_layers, nonlinearity=F.relu,
+                 last_wscale=1.0):
+        model = MLP(
+            in_size=ndim_obs, out_size=n_actions,
+            hidden_sizes=[n_hidden_channels] * n_hidden_layers,
+            nonlinearity=nonlinearity,
+            last_wscale=last_wscale)
+        super().__init__(model=model)
 
 
 @click.command()
@@ -27,15 +50,13 @@ def main(steps, gpu, imagefile, boxfile, tensorboard):
     relative_paths = np.loadtxt(imagefile, dtype=str)
     images_base_path = os.path.dirname(imagefile)
     absolute_paths = [images_base_path + i.strip('.') for i in relative_paths]
-    bboxes = np.load(boxfile)
+    bboxes = np.load(boxfile, allow_pickle=True)
 
     env = TextLocEnv(absolute_paths, bboxes, gpu)
 
     obs_size = 2139
     n_actions = env.action_space.n
-    q_func = chainerrl.q_functions.FCStateQFunctionWithDiscreteAction(
-        obs_size, n_actions,
-        n_hidden_layers=2, n_hidden_channels=1024)
+    q_func = CustomQFunction(obs_size, n_actions, n_hidden_channels=1024, n_hidden_layers=2)
     if gpu != -1:
         q_func = q_func.to_gpu(gpu)
 
