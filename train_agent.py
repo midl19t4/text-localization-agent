@@ -47,20 +47,22 @@ class CustomModel(Chain):
     def __init__(self, n_actions):
         super(CustomModel, self).__init__(
             resNet=L.ResNet152Layers(),
-            l1=L.Linear(2048, 2048),
+            l1=L.Linear(2139, 2048),
             l2=L.Linear(2048, 2048),
             l3=L.Linear(2048, n_actions)
         )
 
     def __call__(self, x):
         image_size = 224*224*3
-        import pdb;pdb.set_trace()
         image_flattened = x[0][:image_size]
         history_and_penalty = x[0][image_size:]
 
-        image = np.array([image_flattened.reshape((224, 224, 3))])
-        h1 = F.relu(self.resNet(image))
-        h2 = F.relu(self.l1(np.concatenate(h1, history_and_penalty)))
+        image = np.array([image_flattened.reshape((3, 224, 224))])
+        h1 = F.relu(self.resNet(image, layers=['pool5'])['pool5'])
+        h2 = F.relu(
+            self.l1(np.array([
+                np.concatenate(
+                    (h1.data[0], history_and_penalty))])))
         h3 = F.relu(self.l2(h2))
         return F.relu(self.l3(h3))
 
