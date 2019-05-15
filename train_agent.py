@@ -53,16 +53,17 @@ class CustomModel(Chain):
         )
 
     def __call__(self, x):
-        image_size = 224*224*3
-        image_flattened = x[0][:image_size]
-        history_and_penalty = x[0][image_size:]
+        image, history, penalty = x[0]
+        image = np.array([
+            image.reshape((3, 224, 224))])
+        penalty = np.array([penalty])
 
-        image = np.array([image_flattened.reshape((3, 224, 224))])
         h1 = F.relu(self.resNet(image, layers=['pool5'])['pool5'])
         h2 = F.relu(
             self.l1(np.array([
                 np.concatenate(
-                    (h1.data[0], history_and_penalty))])))
+                    # TODO: remove .flatten() from history???
+                    (h1.data[0], history.flatten(), penalty))])))
         h3 = F.relu(self.l2(h2))
         return F.relu(self.l3(h3))
 
