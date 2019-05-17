@@ -29,15 +29,12 @@ class CustomModel(Chain):
 
     def forward(self, x):
         image, history, penalty = x[0]
-        image = np.array([
-            image.reshape((3, 224, 224))])
-        penalty = np.array([penalty])
+        image = F.reshape(image, (1,3,224,224))
+        history = F.reshape(history.astype('float32'),(1,-1))
+        penalty = F.reshape(penalty,(1,-1))
         h1 = F.relu(self.resNet(image, layers=['pool5'])['pool5'])
-        h2 = F.relu(
-            self.l1(np.array([
-                np.concatenate(
-                    # TODO: remove .flatten() from history???
-                    (h1.data[0], history.flatten(), penalty))])))
+        h1 = F.reshape(F.concat((h1, history, penalty), axis=1), (1,-1))
+        h2 = F.relu(self.l1(h1))
         h3 = F.relu(self.l2(h2))
         return F.relu(self.l3(h3))
 
