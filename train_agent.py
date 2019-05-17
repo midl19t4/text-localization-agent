@@ -17,32 +17,6 @@ import time
 import re
 
 
-# class CustomQFunction(
-#         chainerrl.q_functions.SingleModelStateQFunctionWithDiscreteAction):
-#     """Fully-connected state-input Q-function with discrete actions.
-#     Args:
-#         n_dim_obs: number of dimensions of observation space
-#         n_dim_action: number of dimensions of action space
-#         n_hidden_channels: number of hidden channels
-#         n_hidden_layers: number of hidden layers
-#     """
-
-#     def __init__(self, ndim_obs, n_actions, n_hidden_channels,
-#                  n_hidden_layers, nonlinearity=F.relu,
-#                  last_wscale=1.0):
-#         model = Sequence(
-#             # TODO: after training, serialize modified ResNet152Layers
-#             L.ResNet152Layers(),
-#             L.Linear(512, n_actions))
-#         # MLP(
-#         #     in_size=ndim_obs, out_size=n_actions,
-#         #     hidden_sizes=[n_hidden_channels] * n_hidden_layers,
-#         #     nonlinearity=nonlinearity,
-#         #     last_wscale=last_wscale)
-#         super().__init__(model=model)
-
-#     def __call__(self):
-
 class CustomModel(Chain):
     def __init__(self, n_actions):
         super(CustomModel, self).__init__()
