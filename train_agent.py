@@ -27,7 +27,7 @@ class CustomModel(Chain):
             self.l3=L.Linear(None, n_actions)
 
 
-    def __call__(self, x):
+    def forward(self, x):
         image, history, penalty = x[0]
         image = np.array([
             image.reshape((3, 224, 224))])
