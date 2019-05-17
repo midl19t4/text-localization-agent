@@ -22,9 +22,9 @@ class CustomModel(Chain):
         super(CustomModel, self).__init__()
         with self.init_scope():
             self.resNet=L.ResNet152Layers()
-            self.l1=L.Linear(2139, 2048)
-            self.l2=L.Linear(2048, 2048)
-            self.l3=L.Linear(2048, n_actions)
+            self.l1=L.Linear(None, 1024)
+            self.l2=L.Linear(None, 1024)
+            self.l3=L.Linear(None, n_actions)
 
 
     def __call__(self, x):
