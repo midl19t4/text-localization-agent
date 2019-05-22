@@ -21,7 +21,7 @@ class CustomModel(Chain):
     def __init__(self, n_actions):
         super(CustomModel, self).__init__()
         with self.init_scope():
-            self.resNet=L.ResNet152Layers()
+            self.resNet=L.ResNet50Layers()
             self.l1=L.Linear(None, 1024)
             self.l2=L.Linear(None, 1024)
             self.l3=L.Linear(None, n_actions)
