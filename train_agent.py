@@ -40,7 +40,7 @@ class CustomModel(Chain):
 
 
 @click.command()
-@click.option("--steps", "-s", default=2000, help="Amount of steps to train the agent.")
+@click.option("--steps", "-s", default=5000, help="Amount of steps to train the agent.")
 @click.option("--gpu", default=-1, help="ID of the GPU to be used. -1 if the CPU should be used instead.")
 @click.option("--imagefile", "-i", default='image_locations.txt', help="Path to the file containing the image locations.", type=click.Path(exists=True))
 @click.option("--boxfile", "-b", default='bounding_boxes.npy', help="Path to the bounding boxes.", type=click.Path(exists=True))
@@ -76,7 +76,7 @@ def main(steps, gpu, imagefile, boxfile, tensorboard):
     explorer = chainerrl.explorers.LinearDecayEpsilonGreedy(
         start_epsilon=1.0,
         end_epsilon=0.1,
-        decay_steps=300000,
+        decay_steps=5000,
         random_action_func=env.action_space.sample)
 
     # DQN uses Experience Replay.
@@ -112,9 +112,9 @@ def main(steps, gpu, imagefile, boxfile, tensorboard):
     train_agent_with_evaluation(
         agent, env,
         steps=steps,  # Train the agent for 5000 steps
-        eval_n_episodes=eval_run_count,  # 10 episodes are sampled for each evaluation
+        eval_n_episodes=10,  # 10 episodes are sampled for each evaluation
         eval_n_steps=None,
-        train_max_episode_len=50,  # Maximum length of each episodes
+        train_max_episode_len=100,  # Maximum length of each episodes
         eval_interval=500,  # Evaluate the agent after every 100 steps
         outdir='result',  # Save everything to 'result' directory
         step_hooks=step_hooks,
