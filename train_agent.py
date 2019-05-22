@@ -28,7 +28,8 @@ class CustomModel(Chain):
 
 
     def forward(self, x):
-        image, history, penalty = x[0]
+        #import pdb; pdb.set_trace()
+        image, history, penalty = x[0], x[1], x[2]
         image = F.reshape(image, (1,3,224,224))
         history = F.reshape(history.astype('float32'),(1,-1))
         penalty = F.reshape(penalty,(1,-1))
@@ -112,8 +113,9 @@ def main(steps, gpu, imagefile, boxfile, tensorboard):
     train_agent_with_evaluation(
         agent, env,
         steps=steps,  # Train the agent for 5000 steps
-        eval_n_runs=eval_run_count,  # 10 episodes are sampled for each evaluation
-        max_episode_len=50,  # Maximum length of each episodes
+        eval_n_episodes=eval_run_count,  # 10 episodes are sampled for each evaluation
+        eval_n_steps=None,
+        train_max_episode_len=50,  # Maximum length of each episodes
         eval_interval=500,  # Evaluate the agent after every 100 steps
         outdir='result',  # Save everything to 'result' directory
         step_hooks=step_hooks,

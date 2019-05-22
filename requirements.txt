@@ -1,4 +1,4 @@
-chainerrl==0.5.0
+chainerrl==0.6.0
 chainer
 numpy
 click
