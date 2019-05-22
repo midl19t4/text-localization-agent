@@ -182,13 +182,13 @@ class TensorBoardEvaluationLoggingHandler(logging.Handler):
         return
 
 
-def run_localization_evaluation_episodes(env, agent, n_runs, max_episode_len=None,
+def run_localization_evaluation_episodes(env, agent, n_steps, n_episodes, max_episode_len=None,
                             logger=None):
     """Run multiple evaluation episodes and return returns.
     Args:
         env (Environment): Environment used for evaluation
         agent (Agent): Agent to evaluate.
-        n_runs (int): Number of evaluation runs.
+        n_episodes (int): Number of evaluation runs.
         max_episode_len (int or None): If specified, episodes longer than this
             value will be truncated.
         logger (Logger or None): If specified, the given Logger object will be
@@ -199,7 +199,7 @@ def run_localization_evaluation_episodes(env, agent, n_runs, max_episode_len=Non
     """
     logger = logger or logging.getLogger(__name__)
     scores = []
-    for i in range(n_runs):
+    for i in range(n_episodes):
         obs = env.reset()
         done = False
         test_r = 0
