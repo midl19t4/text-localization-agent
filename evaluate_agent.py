@@ -21,7 +21,7 @@ def evaluate(gpu, imagefile, boxfile, agentdirectory, save):
     gt_bboxes = np.load(boxfile)
 
     env = create_environment(imagefile, boxfile, gpu)
-    agent = load_agent(env, agentdirectory, gpu)
+    agent = load_agent(env, agentdirectory, gpu, epsilon=0.0)
 
     pred_bboxes = []
 

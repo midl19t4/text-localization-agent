@@ -44,7 +44,7 @@ def main(steps, gpu, imagefile, boxfile, tensorboard):
     optimizer.setup(q_func)
 
     # Set the discount factor that discounts future rewards.
-    gamma = 0.95
+    gamma = 0.1
 
     # Use epsilon-greedy for exploration
     explorer = chainerrl.explorers.LinearDecayEpsilonGreedy(
