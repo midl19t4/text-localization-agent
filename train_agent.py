@@ -34,10 +34,8 @@ def main(steps, gpu, imagefile, boxfile, tensorboard):
 
     env = TextLocEnv(absolute_paths, bboxes, gpu)
 
-    obs_size = 150619
     n_actions = env.action_space.n
     q_func = chainerrl.q_functions.SingleModelStateQFunctionWithDiscreteAction(CustomModel(n_actions))
-    # q_func = CustomQFunction(obs_size, n_actions, n_hidden_channels=1024, n_hidden_layers=2)
     if gpu != -1:
         q_func = q_func.to_gpu(gpu)
 
