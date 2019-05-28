@@ -12,6 +12,7 @@ from chainer import functions as F
 import chainerrl
 import sys
 from collections import defaultdict
+from PIL import Image
 
 ACTION_MEANINGS = {0: 'right',
                    1: 'left',
@@ -51,7 +52,8 @@ class CustomModel(Chain):
 @click.option("--imagefile", "-i", default='image_locations.txt', help="Path to the file containing the image locations.", type=click.Path(exists=True))
 @click.option("--boxfile", "-b", default='bounding_boxes.npy', help="Path to the bounding boxes.", type=click.Path(exists=True))
 @click.option("--directory", "-d", default='agent', help="Path to the agent.", type=click.Path(exists=True))
-def main(imagefile, boxfile, directory):
+@click.option("--gpu", "-g", default=-1, help="GPU to use.")
+def main(imagefile, boxfile, directory, gpu):
     print(imagefile)
     print(boxfile)
 
@@ -71,26 +73,26 @@ def main(imagefile, boxfile, directory):
 
     agent = chainerrl.agents.DQN(
         q_func, optimizer, replay_buffer, gamma, explorer,
-        gpu=-1,
+        gpu=gpu,
         replay_start_size=500, update_interval=1,
         target_update_interval=100)
     agent.load(directory)
-
     actions = defaultdict(int)
-    for i in range(10):
-        done = False
-        obs = env.reset()
-        j = 50
-        while (not done) and (j > 0) :
-            print(i,j)
-            action = agent.act(obs)
-            actions[action] += 1
-            obs, reward, done, info = env.step(action)
-            j -= 1
-    print(actions)
-            #env.render()
-            #print(ACTION_MEANINGS[action], reward, done, info)
-            #input()
+    obs = env.reset()
+    done = False
+    i = 0
+    while (not done) and i < 15:
+        #print(i,j)
+        action = agent.act(obs)
+        actions[ACTION_MEANINGS[action]] += 1
+        obs, reward, done, info = env.step(action)
+        #j -= 1
+        img = env.render(mode='human', return_as_file=True)
+        img.save(f'img/{i}',"bmp")
+
+        print(ACTION_MEANINGS[action], reward, done, info)
+        #input()
+        i += 1
 
 
 
