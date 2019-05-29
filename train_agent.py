@@ -81,7 +81,7 @@ def main(steps, gpu, imagefile, boxfile, tensorboard):
         logger.addHandler(handler)
 
     # Overwrite the normal evaluation method
-    chainerrl.experiments.evaluator.run_evaluation_episodes = run_localization_evaluation_episodes
+    # chainerrl.experiments.evaluator.run_evaluation_episodes = run_localization_evaluation_episodes
 
     train_agent_with_evaluation(
         agent, env,
