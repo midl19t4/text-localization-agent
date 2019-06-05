@@ -35,7 +35,7 @@ def main():
     n_actions = env.action_space.n
     q_func = chainerrl.q_functions.SingleModelStateQFunctionWithDiscreteAction(CustomModel(n_actions))
     if CONFIG['gpu_id'] != -1:
-        q_func = q_func.to_gpu(CONFIG['imagefile_path'])
+        q_func = q_func.to_gpu(CONFIG['gpu_id'])
 
     # Use Adam to optimize q_func. eps=1e-2 is for stability.
     optimizer = chainer.optimizers.Adam(eps=1e-2)

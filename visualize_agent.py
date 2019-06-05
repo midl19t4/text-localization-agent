@@ -71,7 +71,7 @@ def main():
         action = agent.act(obs)
         actions[ACTION_MEANINGS[action]] += 1
         obs, reward, done, info = env.step(action)
-        #j -= 1ACTION_MEANINGS
+        #j -= 1
         img = env.render(mode='human', return_as_file=True)
         img.save(f'img/{i}',"bmp")
 

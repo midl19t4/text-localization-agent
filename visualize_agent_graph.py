@@ -1,4 +1,3 @@
-import click
 import os
 import numpy as np
 from text_localization_environment import TextLocEnv
