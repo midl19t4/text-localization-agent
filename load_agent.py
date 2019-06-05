@@ -32,7 +32,11 @@ def load_agent(env, directory="agent", gpu=0, epsilon=0.3):
 
     # Now create an agent that will interact with the environment.
     agent = chainerrl.agents.DQN(
-        q_func, optimizer, replay_buffer, gamma, explorer,
+        q_func,
+        optimizer,
+        replay_buffer,
+        gamma,
+        explorer,
         gpu=gpu,
         replay_start_size=500, update_interval=1,
         target_update_interval=100)
@@ -47,7 +51,7 @@ def create_environment(imagefile='image_locations.txt', boxfile='bounding_boxes.
     images_base_path = os.path.dirname(imagefile)
     absolute_paths = [images_base_path + i.strip('.') for i in relative_paths]
 
-    bboxes = np.load(boxfile)
+    bboxes = np.load(boxfile, allow_pickle=True)
 
     return TextLocEnv(absolute_paths, bboxes, gpu)
 
