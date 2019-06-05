@@ -37,7 +37,7 @@ def load_config(path=None):
     CONFIG['end_epsilon'] = _configparser.getfloat('agent', 'end_epsilon', fallback=0.1)
     CONFIG['decay_steps'] = _configparser.getint('agent', 'decay_steps', fallback=5000)
     CONFIG['gamma'] = _configparser.getfloat('agent', 'gamma', fallback=0.1)
-    CONFIG['replay_buffer_capacity'] = _configparser.getint('agent', 'replay_buffer_capacity', fallback=10 ** 6)
+    CONFIG['replay_buffer_capacity'] = _configparser.getint('agent', 'replay_buffer_capacity', fallback=1000)
     CONFIG['save_eval'] = _configparser.getboolean('agent', 'save_eval', fallback=False)
 
     CONFIG['pred_bboxes'] = _configparser.get('agent', 'pred_bboxes', fallback='./pred_bboxes.npy')
