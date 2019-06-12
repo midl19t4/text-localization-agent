@@ -28,7 +28,7 @@ def load_config(path=None):
 
     # agent
     CONFIG['gamma'] = _configparser.getfloat('agent', 'gamma', fallback=0.1)
-    CONFIG['replay_start_size'] = _configparser.getint('agent', 'replay_start_size', fallback=500)
+    CONFIG['replay_start_size'] = _configparser.getint('agent', 'replay_start_size', fallback=100)
     CONFIG['replay_buffer_capacity'] = _configparser.getint('agent', 'replay_buffer_capacity', fallback=1000)
     CONFIG['update_interval'] = _configparser.getint('agent', 'update_interval', fallback=1)
     CONFIG['target_update_interval'] = _configparser.getint('agent', 'target_update_interval', fallback=100)
@@ -36,7 +36,7 @@ def load_config(path=None):
     # explorer
     CONFIG['start_epsilon'] = _configparser.getfloat('agent', 'start_epsilon', fallback=1.0)
     CONFIG['end_epsilon'] = _configparser.getfloat('agent', 'end_epsilon', fallback=0.1)
-    CONFIG['decay_steps'] = _configparser.getint('agent', 'decay_steps', fallback=250000)
+    CONFIG['decay_steps'] = _configparser.getint('agent', 'decay_steps', fallback=300000)
 
     # training
     CONFIG['steps'] = _configparser.getint('agent', 'steps', fallback=5000)
