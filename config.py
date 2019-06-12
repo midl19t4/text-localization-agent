@@ -16,6 +16,8 @@ def load_config(path=None):
         if not os.path.exists(args.config):
             raise Exception('Configuration file {} does not exist'.format(args.config))
         _configparser.read(args.config)
+    elif path:
+        _configparser.read(path)
 
     # data and paths
     CONFIG['imagefile_path'] = _configparser.get('agent', 'imagefile_path', fallback='../generated_data/image_locations.txt')
@@ -61,10 +63,6 @@ def load_config(path=None):
         override =  vars(args)[key]
         if override:
             CONFIG[key] = override
-
-    # if method called with path argument, prioritize config file in path
-    if path:
-        _configparser.read(path)
 
     return CONFIG
 
