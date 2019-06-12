@@ -17,29 +17,36 @@ def load_config(path=None):
             raise Exception('Configuration file {} does not exist'.format(args.config))
         _configparser.read(args.config)
 
-    if path:
-        _configparser.read(path)
-
-    CONFIG['steps'] = _configparser.getint('agent', 'steps', fallback=5000)
-    CONFIG['replay_start_size'] = _configparser.getint('agent', 'replay_start_size', fallback=500)
-    CONFIG['update_interval'] = _configparser.getint('agent', 'update_interval', fallback=1)
-    CONFIG['target_update_interval'] = _configparser.getint('agent', 'target_update_interval', fallback=100)
-    CONFIG['train_max_episode_len'] = _configparser.getint('agent', 'train_max_episode_len', fallback=100)
-    CONFIG['eval_n_episodes'] = _configparser.getint('agent', 'eval_n_episodes', fallback=10)
-    CONFIG['eval_interval'] = _configparser.getint('agent', 'eval_interval', fallback=500)
-    CONFIG['gpu_id'] = _configparser.getint('agent', 'gpu_id', fallback=-1)
+    # data and paths
     CONFIG['imagefile_path'] = _configparser.get('agent', 'imagefile_path', fallback='../generated_data/image_locations.txt')
     CONFIG['boxfile_path'] = _configparser.get('agent', 'boxfile_path', fallback='../generated_data/bounding_boxes.npy')
     CONFIG['resultdir_path'] = _configparser.get('agent', 'resultdir_path', fallback='./results')
-    CONFIG['agentdir_path'] = _configparser.get('agent', 'agentdir_path', fallback='./results/0_finish')
-    CONFIG['use_tensorboard'] = _configparser.getboolean('agent', 'use_tensorboard', fallback=False)
+    CONFIG['agentdir_path'] = _configparser.get('agent', 'agentdir_path', fallback='./agent')
+
+    # hardware
+    CONFIG['gpu_id'] = _configparser.getint('agent', 'gpu_id', fallback=-1)
+
+    # agent
+    CONFIG['gamma'] = _configparser.getfloat('agent', 'gamma', fallback=0.1)
+    CONFIG['replay_start_size'] = _configparser.getint('agent', 'replay_start_size', fallback=500)
+    CONFIG['replay_buffer_capacity'] = _configparser.getint('agent', 'replay_buffer_capacity', fallback=1000)
+    CONFIG['update_interval'] = _configparser.getint('agent', 'update_interval', fallback=1)
+    CONFIG['target_update_interval'] = _configparser.getint('agent', 'target_update_interval', fallback=100)
+
+    # explorer
     CONFIG['start_epsilon'] = _configparser.getfloat('agent', 'start_epsilon', fallback=1.0)
     CONFIG['end_epsilon'] = _configparser.getfloat('agent', 'end_epsilon', fallback=0.1)
-    CONFIG['decay_steps'] = _configparser.getint('agent', 'decay_steps', fallback=5000)
-    CONFIG['gamma'] = _configparser.getfloat('agent', 'gamma', fallback=0.1)
-    CONFIG['replay_buffer_capacity'] = _configparser.getint('agent', 'replay_buffer_capacity', fallback=1000)
-    CONFIG['save_eval'] = _configparser.getboolean('agent', 'save_eval', fallback=False)
+    CONFIG['decay_steps'] = _configparser.getint('agent', 'decay_steps', fallback=250000)
 
+    # training
+    CONFIG['steps'] = _configparser.getint('agent', 'steps', fallback=5000)
+    CONFIG['train_max_episode_len'] = _configparser.getint('agent', 'train_max_episode_len', fallback=100)
+    CONFIG['eval_n_episodes'] = _configparser.getint('agent', 'eval_n_episodes', fallback=10)
+    CONFIG['eval_interval'] = _configparser.getint('agent', 'eval_interval', fallback=500)
+    CONFIG['use_tensorboard'] = _configparser.getboolean('agent', 'use_tensorboard', fallback=False)
+
+    # eval
+    CONFIG['save_eval'] = _configparser.getboolean('agent', 'save_eval', fallback=False)
     CONFIG['pred_bboxes'] = _configparser.get('agent', 'pred_bboxes', fallback='./pred_bboxes.npy')
     CONFIG['pred_labels'] = _configparser.get('agent', 'pred_labels', fallback='./pred_labels.npy')
     CONFIG['pred_scores'] = _configparser.get('agent', 'pred_scores', fallback='./pred_scores.npy')
@@ -54,6 +61,10 @@ def load_config(path=None):
         override =  vars(args)[key]
         if override:
             CONFIG[key] = override
+
+    # if method called with path argument, prioritize config file in path
+    if path:
+        _configparser.read(path)
 
     return CONFIG
 
