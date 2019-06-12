@@ -80,6 +80,9 @@ def main():
         logger = logging.getLogger()
         logger.addHandler(handler)
 
+    # save config file to results dir after initializing agent
+    write_config()
+
     # Overwrite the normal evaluation method
     # chainerrl.experiments.evaluator.run_evaluation_episodes = run_localization_evaluation_episodes
 
@@ -96,7 +99,6 @@ def main():
         logger=logger)
 
     agent.save('agent_' + timestr + "_" + agentClassName)
-    write_config()
 
 
 class TensorBoardLoggingStepHook(chainerrl.experiments.StepHook):
