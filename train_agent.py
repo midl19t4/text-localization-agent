@@ -16,7 +16,7 @@ import re
 from custom_model import CustomModel
 
 @click.command()
-@click.option("--steps", "-s", default=5000, help="Amount of steps to train the agent.")
+@click.option("--steps", "-s", default=1000000, help="Amount of steps to train the agent.")
 @click.option("--gpu", default=-1, help="ID of the GPU to be used. -1 if the CPU should be used instead.")
 @click.option("--imagefile", "-i", default='image_locations.txt', help="Path to the file containing the image locations.", type=click.Path(exists=True))
 @click.option("--boxfile", "-b", default='bounding_boxes.npy', help="Path to the bounding boxes.", type=click.Path(exists=True))
@@ -55,13 +55,13 @@ def main(steps, gpu, imagefile, boxfile, tensorboard):
 
     # DQN uses Experience Replay.
     # Specify a replay buffer and its capacity.
-    replay_buffer = chainerrl.replay_buffer.ReplayBuffer(capacity=100)
+    replay_buffer = chainerrl.replay_buffer.ReplayBuffer(capacity=10000)
 
     # Now create an agent that will interact with the environment.
     agent = chainerrl.agents.DQN(
         q_func, optimizer, replay_buffer, gamma, explorer,
         gpu=gpu,
-        replay_start_size=100, update_interval=1,
+        replay_start_size=10000, update_interval=1,
         target_update_interval=100)
 
     logging.basicConfig(level=logging.INFO, stream=sys.stdout, format='')
@@ -89,7 +89,7 @@ def main(steps, gpu, imagefile, boxfile, tensorboard):
         eval_n_episodes=10,  # 10 episodes are sampled for each evaluation
         eval_n_steps=None,
         train_max_episode_len=100,  # Maximum length of each episodes
-        eval_interval=500,  # Evaluate the agent after every 100 steps
+        eval_interval=1000,  # Evaluate the agent after every 100 steps
         outdir='result',  # Save everything to 'result' directory
         step_hooks=step_hooks,
         logger=logger)
