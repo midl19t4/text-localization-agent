@@ -50,7 +50,7 @@ def main():
 
     # DQN uses Experience Replay.
     # Specify a replay buffer and its capacity.
-    replay_buffer = chainerrl.replay_buffer.ReplayBuffer(capacity=CONFIG['replay_buffer_capacity'])
+    replay_buffer = chainerrl.replay_buffer.EpisodicReplayBuffer(capacity=CONFIG['replay_buffer_capacity'])
 
     # Now create an agent that will interact with the environment.
     agent = chainerrl.agents.DQN(
