@@ -15,7 +15,8 @@ class CustomModel(Chain):
 
     def forward(self, x):
         image, history = x[0], x[1]
-        image = F.reshape(image, (-1,3,224,224))
+        # keep batch axis at dim 0, move x,y axes in front of color channel axis
+        image = F.transpose(image, axes=(0, 3, 1, 2))
         history = F.reshape(history.astype('float32'),(-1,90))
         h1 = F.relu(self.resNet(image, layers=['pool5'])['pool5'])
         h1 = F.reshape(F.concat((h1, history), axis=1), (-1,2138))
