@@ -30,7 +30,7 @@ def load_config(path=None):
 
     # optimizer
     CONFIG['epsilon'] = _configparser.getfloat('agent', 'epsilon', fallback=0.01)
-    CONFIG['learning_rate'] = _configparser.getfloat('agent', 'learning_rate', fallback=0.005)
+    CONFIG['learning_rate'] = _configparser.getfloat('agent', 'learning_rate', fallback=0.0001)
 
     # agent
     CONFIG['gamma'] = _configparser.getfloat('agent', 'gamma', fallback=0.1)
