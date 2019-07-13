@@ -14,6 +14,7 @@ import re
 
 from custom_model import CustomModel
 from config import CONFIG, write_config, print_config
+from tensorboard_gradient_histogram import TensorboardGradientPlotter
 
 
 """
@@ -79,6 +80,11 @@ def main():
         handler = TensorBoardEvaluationLoggingHandler(writer, agent, eval_run_count)
         logger = logging.getLogger()
         logger.addHandler(handler)
+
+        gradients_weights_log_interval = 100
+        optimizer.add_hook(
+            TensorboardGradientPlotter(summary_writer=writer, log_interval=gradients_weights_log_interval)
+        )
 
     # save config file to results dir after initializing agent
     write_config()
