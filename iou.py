@@ -76,7 +76,7 @@ def main():
 
                 print(ACTION_MEANINGS[action], reward, done, info)
                 if done:
-                    f.write(str(env.iou))
+                    f.write(f'{env.iou}\n')
                 #input()
                 i += 1
 
