@@ -63,21 +63,22 @@ def main():
 
     agent.load(CONFIG['resultdir_path'] + '/best')
     actions = defaultdict(int)
-    i = 0
-    for j in range(100):
-        obs = env.reset()
-        done = False
-        while (not done) and i < 100:
-            #print(i,j)
-            action = agent.act(obs)
-            actions[ACTION_MEANINGS[action]] += 1
-            obs, reward, done, info = env.step(action)
+    with open('iou.txt', 'w') as f:
+        i = 0
+        for j in range(100):
+            obs = env.reset()
+            done = False
+            while (not done) and i < 100:
+                #print(i,j)
+                action = agent.act(obs)
+                actions[ACTION_MEANINGS[action]] += 1
+                obs, reward, done, info = env.step(action)
 
-            print(ACTION_MEANINGS[action], reward, done, info)
-            if done:
-                print(env.iou)
-            #input()
-            i += 1
+                print(ACTION_MEANINGS[action], reward, done, info)
+                if done:
+                    f.write(env.iou)
+                #input()
+                i += 1
 
 
 if __name__ == '__main__':
