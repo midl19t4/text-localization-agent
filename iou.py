@@ -61,7 +61,7 @@ def main():
         update_interval=CONFIG['update_interval'],
         target_update_interval=CONFIG['target_update_interval'])
 
-    agent.load(CONFIG['agentdir_path'])
+    agent.load(CONFIG['agentdir_path'] + '/best')
     actions = defaultdict(int)
     i = 0
     for j in range(100):
