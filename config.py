@@ -60,6 +60,9 @@ def load_config(path=None):
     CONFIG['gt_labels'] = _configparser.get('agent', 'gt_labels', fallback='./gt_labels.npy')
     CONFIG['iou_threshold'] = _configparser.getfloat('agent', 'iou_threshold', fallback=0.5)
 
+    # choose reward function
+    CONFIG['reward_function'] = _configparser.get('agent', 'reward_function', fallback='single')
+
     # if set, override config w/ command line arguments
     for key in CONFIG:
         _argparser.add_argument('--{}'.format(key), type=type(CONFIG[key]))

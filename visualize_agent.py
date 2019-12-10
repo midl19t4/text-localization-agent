@@ -73,7 +73,7 @@ def main():
         obs, reward, done, info = env.step(action)
         #j -= 1
         img = env.render(mode='human', return_as_file=True)
-        img.save(f'img/{i}',"bmp")
+        img.save(f'img/{i}.bmp',"bmp")
 
         print(ACTION_MEANINGS[action], reward, done, info)
         #input()

@@ -61,7 +61,7 @@ def main():
         update_interval=CONFIG['update_interval'],
         target_update_interval=CONFIG['target_update_interval'])
 
-    agent.load(CONFIG['resultdir_path'] + '/best')
+    agent.load(CONFIG['agentdir_path'])
     actions = defaultdict(int)
     with open('iou.txt', 'w') as f:
         i = 0

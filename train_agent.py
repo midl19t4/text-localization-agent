@@ -31,7 +31,7 @@ def main():
     absolute_paths = [images_base_path + i.strip('.') for i in relative_paths]
     bboxes = np.load(CONFIG['boxfile_path'], allow_pickle=True)
 
-    env = TextLocEnv(absolute_paths, bboxes, CONFIG['gpu_id'])
+    env = TextLocEnv(absolute_paths, bboxes, CONFIG['gpu_id'], CONFIG['reward_function'])
 
     n_actions = env.action_space.n
     q_func = chainerrl.q_functions.SingleModelStateQFunctionWithDiscreteAction(CustomModel(n_actions))
