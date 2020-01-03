@@ -26,6 +26,8 @@ ACTION_MEANINGS = {
     8: 'trigger'
 }
 
+NUMBER_OF_GIFS = 10
+
 """
 Set arguments w/ config file (--config) or cli
 :gpu_id :imagefile_path :boxfile_path :resultdir_path :start_epsilon :end_epsilon :decay_steps \
@@ -63,21 +65,31 @@ def main():
 
     agent.load(CONFIG['agentdir_path'])
     actions = defaultdict(int)
-    obs = env.reset()
-    done = False
-    i = 0
-    while (not done) and i < 15:
-        #print(i,j)
-        action = agent.act(obs)
-        actions[ACTION_MEANINGS[action]] += 1
-        obs, reward, done, info = env.step(action)
-        #j -= 1
-        img = env.render(mode='human', return_as_file=True)
-        img.save(f'img/{i}.bmp',"bmp")
 
-        print(ACTION_MEANINGS[action], reward, done, info)
-        #input()
-        i += 1
+    visualization_path = ''.join([CONFIG['resultdir_path'], '/visualization'])
+    os.mkdir(visualization_path)
+
+    for gif_id in range(NUMBER_OF_GIFS):
+        obs = env.reset()
+        done = False
+        i = 0
+        frames = []
+        while (not done) and i < 15:
+            action = agent.act(obs)
+            actions[ACTION_MEANINGS[action]] += 1
+            obs, reward, done, info = env.step(action)
+            img = env.render(mode='human', return_as_file=True)
+            frames.append(img)
+
+            print(ACTION_MEANINGS[action], reward, done, info)
+            i += 1
+        frames[0].save(
+            f'{visualization_path}/visualization_result_{gif_id}.gif',
+            format='GIF',
+            append_images=frames[1:],
+            save_all=True,
+            duration=200,
+            loop=0)
 
 
 if __name__ == '__main__':
