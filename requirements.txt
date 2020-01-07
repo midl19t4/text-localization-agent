@@ -7,5 +7,4 @@ tensorboard-chainer
 chainercv
 matplotlib
 tqdm
-click
 cupy
