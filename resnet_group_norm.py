@@ -59,7 +59,7 @@ class ResNet(chainer.Chain):
                 self.res3 = BasicBlock(block[1], 32)
                 self.res4 = BasicBlock(block[2], 64)
             elif n_layers in [19, 50, 101, 152]:
-                self.conv1 = L.Convolution2D(3, 64, 7, 2, 3, initialW=w, nobias=True)
+                self.conv1 = L.Convolution2D(4, 64, 7, 2, 3, initialW=w, nobias=True)
                 self.bn1 = L.GroupNormalization(32)
                 self.res2 = BottleNeckBlock(block[0], 64, 64, 256, 1)
                 self.res3 = BottleNeckBlock(block[1], 256, 128, 512)

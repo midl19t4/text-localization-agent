@@ -1,5 +1,6 @@
 import os
 import numpy as np
+from chainerrl.misc import batch_states
 from text_localization_environment import TextLocEnv
 from chainerrl.links.mlp import MLP
 from chainerrl.links import Sequence
@@ -34,6 +35,7 @@ def main():
     env = TextLocEnv(absolute_paths, bboxes, CONFIG['gpu_id'], CONFIG['reward_function'])
 
     n_actions = env.action_space.n
+
     q_func = chainerrl.q_functions.SingleModelStateQFunctionWithDiscreteAction(CustomModel(n_actions))
     if CONFIG['gpu_id'] != -1:
         q_func = q_func.to_gpu(CONFIG['gpu_id'])
@@ -64,6 +66,8 @@ def main():
         replay_start_size=CONFIG['replay_start_size'],
         update_interval=CONFIG['update_interval'],
         target_update_interval=CONFIG['target_update_interval'])
+
+    agent.target_model = None
 
     logging.basicConfig(level=logging.INFO, stream=sys.stdout, format='')
 
