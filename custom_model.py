@@ -1,13 +1,13 @@
 from chainer import functions as F
 from chainer import links as L
 from chainer import Chain
-from resnet_group_norm import ResNet as ResNetGroupNorm
+from resnet_50_alpha import ResNet50Alpha
 
 class CustomModel(Chain):
     def __init__(self, n_actions):
         super(CustomModel, self).__init__()
         with self.init_scope():
-            self.resNet=ResNetGroupNorm(50)
+            self.resNet=ResNet50Alpha()
             self.l1=L.Linear(2138, 1024)
             self.l2=L.Linear(1024, 1024)
             self.l3=L.Linear(1024, n_actions)
