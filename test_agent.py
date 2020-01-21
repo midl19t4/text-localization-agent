@@ -37,7 +37,7 @@ class TestAgent():
 
         bboxes = np.load(CONFIG['boxfile_path'], allow_pickle=True)
 
-        self.env = TextLocEnv(absolute_paths, bboxes, -1)
+        self.env = TextLocEnv(absolute_paths, bboxes, CONFIG['gpu_id'])
 
         # Initialize Agent
         q_func = chainerrl.q_functions.SingleModelStateQFunctionWithDiscreteAction(CustomModel(9))
@@ -77,14 +77,28 @@ class TestAgent():
         if not os.path.exists(plots_path):
             os.mkdir(plots_path)
 
+        evaluation_data_path = ''.join([CONFIG['resultdir_path'], '/evaluation_data'])
+        if not os.path.exists(evaluation_data_path):
+            os.mkdir(evaluation_data_path)
+
+        self.safe_data(evaluation_data_path + '/ious_per_image', self.ious_per_image)
+        self.safe_data(evaluation_data_path + '/rewards_per_image', self.rewards_per_image)
+        self.safe_data(evaluation_data_path + '/not_found_words_per_image', self.not_found_words_per_image)
+
         self.print_evaluation()
         self.hist_actions(plots_path)
         self.plot_ious(plots_path)
         self.plot_rewards(plots_path)
 
+    def safe_data(self, path, data):
+        with open(path + '.txt', 'w') as f:
+            f.write(str(data))
+
     def test(self, before_step_callback=False, after_image_callback=False):
         for n in range(self.num_images):
-            state = self.env.reset(add_random_iors=False, image_index=18)
+            print('starting image with index: ' + str(n))
+
+            state = self.env.reset(add_random_iors=False)
 
             image_ious = []
             image_rewards = []
@@ -92,9 +106,26 @@ class TestAgent():
             timeouts = 0
 
             while timeouts <= 4:  # search for more words
-                print(image_ious)
                 done = False
                 steps = 0
+
+                while not done:  # take more steps
+                    if steps == 40:
+                        # timeout when 40 steps reached and no trigger done
+                        timeouts += 1
+                        break
+
+                    if before_step_callback:
+                        before_step_callback()
+
+                    action = self.agent.act(state)
+                    image_actions.append(action)
+                    state, reward, done, info = self.env.step(action)
+
+                    if done:
+                        image_ious.append(self.env.iou)
+                        image_rewards.append(reward)
+                    steps += 1
 
                 if timeouts == 0:
                     state = self.env.reset(stay_on_image=True, add_random_iors=False)
@@ -114,25 +145,6 @@ class TestAgent():
                     elif timeouts == 4:
                         bbox = np.array([left, 0, self.env.episode_image.width, bottom])
                     state = self.env.reset(stay_on_image=True, start_bbox=bbox, add_random_iors=False)
-
-                while not done:  # take more steps
-                    print(steps)
-                    if steps == 40:
-                        # timeout when 40 steps reached and no trigger done
-                        timeouts += 1
-                        break
-
-                    if before_step_callback:
-                        before_step_callback()
-
-                    action = self.agent.act(state)
-                    image_actions.append(action)
-                    state, reward, done, info = self.env.step(action)
-
-                    if done:
-                        image_ious.append(self.env.iou)
-                        image_rewards.append(reward)
-                    steps += 1
 
             # save all actions on one image together
             self.actions_per_image.append(image_actions)
@@ -266,8 +278,9 @@ class TestAgent():
         plt.clf()
 
     def plot_ious(self, plots_path):
-        x = [i for i in range(len(self.flatten(self.ious_per_image)))]
-        y = self.flatten(self.ious_per_image)
+        ious = self.flatten(self.ious_per_image)
+        x = [i for i in range(len(ious))]
+        y = ious
 
         plt.plot(x, y)
         plt.xticks(x)
@@ -279,8 +292,9 @@ class TestAgent():
         plt.clf()
 
     def plot_rewards(self, plots_path):
-        x = [i for i in range(len(self.rewards_per_image))]
-        y = self.rewards_per_image
+        rewards = self.flatten(self.rewards_per_image)
+        x = [i for i in range(len(rewards))]
+        y = rewards
 
         plt.plot(x, y)
         plt.xticks(x)
@@ -296,7 +310,7 @@ class TestAgent():
         for ious in self.ious_per_image:
             tp = len([iou for iou in ious if iou > 0.5])
             fp = len(ious) - tp
-            precision = tp / (tp + fp)
+            precision = tp / (tp + fp) if tp + fp > 0 else None
             precisions.append(precision)
 
         return precisions
@@ -307,7 +321,7 @@ class TestAgent():
             tp = len([iou for iou in ious if iou > 0.5])
             fn = not_found_words
 
-            recall = tp / (tp + fn)
+            recall = tp / (tp + fn) if tp + fn > 0 else None
             recalls.append(recall)
 
         return recalls
