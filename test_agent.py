@@ -13,7 +13,7 @@ from config import CONFIG, print_config
 
 
 class TestAgent():
-    def __init__(self, resets, visualize):
+    def __init__(self, num_images, visualize):
         # class variables
         self.action_meanings = {
             0: 'right',
@@ -26,9 +26,9 @@ class TestAgent():
             7: 'taller',
             8: 'trigger'
         }
-        self.actions, self.ious, self.rewards = [], [], []
+        self.actions_per_image, self.ious_per_image, self.rewards_per_image, self.not_found_words_per_image = [], [], [], []
         self.episode_actions_counts = []
-        self.resets = resets
+        self.num_images = num_images
 
         # initialize Environment
         relative_paths = np.loadtxt(CONFIG['imagefile_path'], dtype=str)
@@ -82,51 +82,77 @@ class TestAgent():
         self.plot_ious(plots_path)
         self.plot_rewards(plots_path)
 
+    def test(self, before_step_callback=False, after_image_callback=False):
+        for n in range(self.num_images):
+            state = self.env.reset(add_random_iors=False, image_index=18)
 
-    def test(self):
-        for n in range(self.resets):
-            steps = 0
-            print("begin reset")
-            state = self.env.reset()
-            print("finished reset")
+            image_ious = []
+            image_rewards = []
+            image_actions = []
+            timeouts = 0
 
-            done = False
-            iter_actions = []
-            while (not done) and steps < 100:
-                action = self.agent.act(state)
-                iter_actions.append(action)
-                state, reward, done, info = self.env.step(action)
+            while timeouts <= 4:  # search for more words
+                print(image_ious)
+                done = False
+                steps = 0
 
-                if done:
-                    self.ious.append(self.env.iou)
-                    self.rewards.append(reward)
-                    self.actions.append(iter_actions)
-                steps += 1
+                if timeouts == 0:
+                    state = self.env.reset(stay_on_image=True, add_random_iors=False)
+                else:
+                    # reset initial bbox with 75% size of whole image frame
+                    # adjusted corners
+                    left = int(self.env.episode_image.width * 0.25)
+                    top = int(self.env.episode_image.height * 0.25)
+                    right = int(self.env.episode_image.width * 0.75)
+                    bottom = int(self.env.episode_image.height * 0.75)
+                    if timeouts == 1:
+                        bbox = np.array([0, 0, right, bottom])
+                    elif timeouts == 2:
+                        bbox = np.array([0, top, right, self.env.episode_image.height])
+                    elif timeouts == 3:
+                        bbox = np.array([left, top, self.env.episode_image.width, self.env.episode_image.height])
+                    elif timeouts == 4:
+                        bbox = np.array([left, 0, self.env.episode_image.width, bottom])
+                    state = self.env.reset(stay_on_image=True, start_bbox=bbox, add_random_iors=False)
+
+                while not done:  # take more steps
+                    print(steps)
+                    if steps == 40:
+                        # timeout when 40 steps reached and no trigger done
+                        timeouts += 1
+                        break
+
+                    if before_step_callback:
+                        before_step_callback()
+
+                    action = self.agent.act(state)
+                    image_actions.append(action)
+                    state, reward, done, info = self.env.step(action)
+
+                    if done:
+                        image_ious.append(self.env.iou)
+                        image_rewards.append(reward)
+                    steps += 1
+
+            # save all actions on one image together
+            self.actions_per_image.append(image_actions)
+
+            self.ious_per_image.append(image_ious)
+            self.rewards_per_image.append(image_rewards)
+            self.not_found_words_per_image.append(len(self.env.episode_not_found_bboxes))
+
+            if after_image_callback:
+                after_image_callback(n)
+
 
     def visualize(self, visualization_path):
         frames = []
-        for gif_id in range(self.resets):
-            steps = 0
-            print("begin reset")
-            state = self.env.reset()
-            print("finished reset")
 
-            done = False
-            iter_actions = []
-            while (not done) and steps < 100:
-                action = self.agent.act(state)
-                iter_actions.append(action)
-                state, reward, done, info = self.env.step(action)
+        def before_step_callback():
+            img = self.env.render(mode='human', return_as_file=True)
+            frames.append(img)
 
-                img = self.env.render(mode='human', return_as_file=True)
-                frames.append(img)
-
-                if done:
-                    self.ious.append(self.env.iou)
-                    self.rewards.append(reward)
-                    self.actions.append(iter_actions)
-                steps += 1
-
+        def after_image_callback(gif_id):
             frames[0].save(
                 f'{visualization_path}/visualization_result_{gif_id}.gif',
                 format='GIF',
@@ -134,64 +160,86 @@ class TestAgent():
                 save_all=True,
                 duration=200,
                 loop=0)
+            del frames[:]
 
+        self.test(before_step_callback, after_image_callback)
 
     def print_evaluation(self):
+        precisions = self.precision()
+        recalls = self.recall()
         print("==== Evaluation of Agent Performance ====")
         print(f"Minimal IoU:\t{self.min_iou()}")
         print(f"Maximal IoU:\t{self.max_iou()}")
         print(f"Average IoU:\t{self.mean_iou()}")
         print(f"Median IoU:\t\t{self.median_iou()}")
+        print(f"Minimal precision:\t{min(precisions)}")
+        print(f"Maximal precision:\t{max(precisions)}")
+        print(f"Average precision:\t{statistics.mean(precisions)}")
+        print(f"Median precision:\t\t{statistics.median(precisions)}")
+        print(f"Minimal recall:\t{min(recalls)}")
+        print(f"Maximal recall:\t{max(recalls)}")
+        print(f"Average recall:\t{statistics.mean(recalls)}")
+        print(f"Median recall:\t\t{statistics.median(recalls)}")
         print(f"Minimal Number of Actions:\t{self.min_num_actions()}")
         print(f"Maximal Number of Actions:\t{self.max_num_actions()}")
         print(f"Average Number of Actions:\t{self.mean_num_actions()}")
         print(f"Median Number of Actions:\t{self.median_num_actions()}")
 
     def min_iou(self):
-        return min(self.ious)
+        return min(self.flatten(self.ious_per_image))
 
     def max_iou(self):
-        return max(self.ious)
+        return max(self.flatten(self.ious_per_image))
 
     def mean_iou(self):
-        return statistics.mean(self.ious)
+        return statistics.mean(self.flatten(self.ious_per_image))
 
     def median_iou(self):
-        sorted_ious = sorted(self.ious)
+        sorted_ious = sorted(self.flatten(self.ious_per_image))
+        return statistics.median(sorted_ious)
+
+    def mean(self, arr):
+        return statistics.mean(self.flatten(self.ious_per_image))
+
+    def median(self, arr):
+        sorted_ious = sorted(self.flatten(self.ious_per_image))
         return statistics.median(sorted_ious)
 
 
     def min_num_actions(self):
         if self.episode_actions_counts == []:
-            self.episode_actions_counts = [len(action_list) for action_list in self.actions]
+            self.episode_actions_counts = [len(action_list) for action_list in self.actions_per_image]
 
         return min(self.episode_actions_counts)
 
     def max_num_actions(self):
         if self.episode_actions_counts == []:
-            self.episode_actions_counts = [len(action_list) for action_list in self.actions]
+            self.episode_actions_counts = [len(action_list) for action_list in self.actions_per_image]
 
         return max(self.episode_actions_counts)
 
     def mean_num_actions(self):
         if self.episode_actions_counts == []:
-            self.episode_actions_counts = [len(action_list) for action_list in self.actions]
+            self.episode_actions_counts = [len(action_list) for action_list in self.actions_per_image]
 
         return statistics.mean(self.episode_actions_counts)
 
     def median_num_actions(self):
         if self.episode_actions_counts == []:
-            self.episode_actions_counts = [len(action_list) for action_list in self.actions]
+            self.episode_actions_counts = [len(action_list) for action_list in self.actions_per_image]
 
         sorted_actions_counts = sorted(self.episode_actions_counts)
         return statistics.median(sorted_actions_counts)
 
+    def flatten(self, to_flatten):
+        result = []
+        for l in to_flatten:
+            for i in l:
+                result.append(i)
+        return result
 
     def hist_actions(self, plots_path):
-        actions = []
-        for action_list in self.actions:
-            for a in action_list:
-                actions.append(a)
+        actions = self.flatten(self.actions_per_image)
         actions.sort()
         action_types = [self.action_meanings[a] for a in set(actions)]
         fig, axs = plt.subplots(1, 1)
@@ -218,8 +266,8 @@ class TestAgent():
         plt.clf()
 
     def plot_ious(self, plots_path):
-        x = [i for i in range(len(self.ious))]
-        y = self.ious
+        x = [i for i in range(len(self.flatten(self.ious_per_image)))]
+        y = self.flatten(self.ious_per_image)
 
         plt.plot(x, y)
         plt.xticks(x)
@@ -231,8 +279,8 @@ class TestAgent():
         plt.clf()
 
     def plot_rewards(self, plots_path):
-        x = [i for i in range(len(self.rewards))]
-        y = self.rewards
+        x = [i for i in range(len(self.rewards_per_image))]
+        y = self.rewards_per_image
 
         plt.plot(x, y)
         plt.xticks(x)
@@ -243,15 +291,36 @@ class TestAgent():
         plt.savefig(path)
         plt.clf()
 
+    def precision(self):
+        precisions = []
+        for ious in self.ious_per_image:
+            tp = len([iou for iou in ious if iou > 0.5])
+            fp = len(ious) - tp
+            precision = tp / (tp + fp)
+            precisions.append(precision)
+
+        return precisions
+
+    def recall(self):
+        recalls = []
+        for ious, not_found_words in zip(self.ious_per_image, self.not_found_words_per_image):
+            tp = len([iou for iou in ious if iou > 0.5])
+            fn = not_found_words
+
+            recall = tp / (tp + fn)
+            recalls.append(recall)
+
+        return recalls
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('num_resets', nargs=1, type=int, help='Path to config file', default=100)
+    parser.add_argument('num_images', nargs=1, type=int, help='Path to config file', default=100)
     parser.add_argument('-v', '--visualize', action='store_true', help='Indicates if visualization should be saved.')
     args, _ = parser.parse_known_args()
 
-    agent = TestAgent(resets=args.num_resets[0], visualize=args.visualize)
-    print(agent.ious)
-    print(agent.rewards)
-    print(agent.actions)
+    agent = TestAgent(num_images=args.num_images[0], visualize=args.visualize)
+    print(agent.ious_per_image)
+    print(agent.rewards_per_image)
+    print(agent.actions_per_image)
 
