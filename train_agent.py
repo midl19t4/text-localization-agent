@@ -202,4 +202,8 @@ def run_localization_evaluation_episodes(env, agent, n_steps, n_episodes, max_ep
 
 
 if __name__ == '__main__':
+    if os.path.exists(CONFIG["resultdir_path"]):
+        print("Result dir already exists!")
+        sys.exit(1)
+
     main()
