@@ -62,6 +62,8 @@ def load_config(path=None):
 
     # choose reward function
     CONFIG['reward_function'] = _configparser.get('agent', 'reward_function', fallback='single')
+    # the form of the ior marker
+    CONFIG['ior_marker'] = _configparser.get('agent', 'ior_marker', fallback='box')
 
     # if set, override config w/ command line arguments
     for key in CONFIG:

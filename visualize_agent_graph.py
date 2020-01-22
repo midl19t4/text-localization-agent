@@ -29,7 +29,7 @@ def main():
     absolute_paths = [images_base_path + i.strip('.') for i in relative_paths]
     bboxes = np.load(CONFIG['boxfile_path'], allow_pickle=True)
 
-    env = TextLocEnv(absolute_paths, bboxes, -1)
+    env = TextLocEnv(absolute_paths, bboxes, -1, CONFIG['reward_function'], CONFIG['ior_marker'])
     m = CustomModel(10)
     vs = [m(env.reset())]
     g = c.build_computational_graph(vs)
