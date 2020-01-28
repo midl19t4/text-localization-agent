@@ -17,7 +17,8 @@ class VisualizeAgent():
             5: 'smaller',
             6: 'fatter',
             7: 'taller',
-            8: 'trigger'
+            8: 'trigger',
+            9: 'finish'
         }
 
         evaluation_data_path = ''.join([CONFIG['resultdir_path'], '/evaluation_data'])

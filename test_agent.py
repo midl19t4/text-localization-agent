@@ -16,17 +16,6 @@ class TestAgent():
     def __init__(self, num_images, visualize):
         print_config()
         # class variables
-        self.action_meanings = {
-            0: 'right',
-            1: 'left',
-            2: 'up',
-            3: 'down',
-            4: 'bigger',
-            5: 'smaller',
-            6: 'fatter',
-            7: 'taller',
-            8: 'trigger'
-        }
         self.actions_per_image, self.ious_per_image, self.rewards_per_image, self.not_found_words_per_image = [], [], [], []
         self.image_actions_counts = []
         self.num_images = num_images
