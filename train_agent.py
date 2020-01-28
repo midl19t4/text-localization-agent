@@ -11,6 +11,7 @@ import sys
 from tb_chainer import SummaryWriter
 import time
 import re
+import json
 
 from custom_model import CustomModel
 from config import CONFIG, write_config, print_config
@@ -26,10 +27,18 @@ Set arguments w/ config file (--config) or cli
 def main():
     print_config()
 
-    relative_paths = np.loadtxt(CONFIG['imagefile_path'], dtype=str)
-    images_base_path = os.path.dirname(CONFIG['imagefile_path'])
-    absolute_paths = [images_base_path + i.strip('.') for i in relative_paths]
-    bboxes = np.load(CONFIG['boxfile_path'], allow_pickle=True)
+    #relative_paths = np.loadtxt(CONFIG['imagefile_path'], dtype=str)
+    #images_base_path = os.path.dirname(CONFIG['imagefile_path'])
+    #absolute_paths = [images_base_path + i.strip('.') for i in relative_paths]
+    #bboxes = np.load(CONFIG['boxfile_path'], allow_pickle=True)
+
+    with open(CONFIG['imagefile_path'], 'r') as file:
+        data = json.loads(file.read())
+        relative_paths = [img['file_name'] for img in data]
+        images_base_path = os.path.dirname(CONFIG['imagefile_path']) + '/'
+        absolute_paths = [images_base_path + i.strip('.') for i in relative_paths]
+        bboxes = [[((bbox[0], bbox[1]), (bbox[2], bbox[3])) for bbox in img['bounding_boxes']] for img in data]
+
 
     env = TextLocEnv(absolute_paths, bboxes, CONFIG['gpu_id'], CONFIG['reward_function'], CONFIG['ior_marker'])
 

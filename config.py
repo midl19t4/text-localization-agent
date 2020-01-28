@@ -65,6 +65,9 @@ def load_config(path=None):
     # the form of the ior marker
     CONFIG['ior_marker'] = _configparser.get('agent', 'ior_marker', fallback='box')
 
+    # Timeout of agent while testing
+    CONFIG['timeout'] = _configparser.getint('agent', 'timeout', fallback=40)
+
     # if set, override config w/ command line arguments
     for key in CONFIG:
         _argparser.add_argument('--{}'.format(key), type=type(CONFIG[key]))
