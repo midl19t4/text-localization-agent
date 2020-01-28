@@ -107,7 +107,7 @@ class TestAgent():
         for n in range(self.num_images):
             print('starting image with index: ' + str(n))
 
-            state = self.env.reset(image_index=n, add_random_iors=False)
+            state = self.env.reset(image_index=n, training=False)
 
             image_ious = []
             image_rewards = []
@@ -139,10 +139,10 @@ class TestAgent():
                     steps += 1
 
                 if timeouts == 0:
-                    state = self.env.reset(stay_on_image=True, add_random_iors=False)
+                    state = self.env.reset(stay_on_image=True, training=False)
                 else:
                     state = self.env.reset(stay_on_image=True, start_bbox=self.calculate_reset_box(timeouts),
-                                           add_random_iors=False)
+                                           training=False)
 
             # save all actions on one image together
             self.actions_per_image.append(image_actions)

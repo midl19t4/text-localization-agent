@@ -40,7 +40,7 @@ def main():
         bboxes = [[((bbox[0], bbox[1]), (bbox[2], bbox[3])) for bbox in img['bounding_boxes']] for img in data]
 
 
-    env = TextLocEnv(absolute_paths, bboxes, CONFIG['gpu_id'], CONFIG['reward_function'], CONFIG['ior_marker'])
+    env = TextLocEnv(absolute_paths, bboxes, CONFIG['gpu_id'], CONFIG['reward_function'], CONFIG['ior_marker'], CONFIG['enlarge_bboxes'])
 
     n_actions = env.action_space.n
     q_func = chainerrl.q_functions.SingleModelStateQFunctionWithDiscreteAction(CustomModel(n_actions))

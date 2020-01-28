@@ -68,6 +68,8 @@ def load_config(path=None):
     CONFIG['timeout'] = _configparser.getint('agent', 'timeout', fallback=40)
     # Timeout of agent while testing
     CONFIG['reset_mode'] = _configparser.get('agent', 'reset_mode', fallback='corners')
+    # Timeout of agent while testing
+    CONFIG['enlarge_bboxes'] = _configparser.getboolean('agent', 'enlarge_bboxes', fallback=False)
 
     # if set, override config w/ command line arguments
     for key in CONFIG:
