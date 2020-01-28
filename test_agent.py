@@ -9,7 +9,7 @@ import json
 import sys
 
 from custom_model import CustomModel
-from config import CONFIG, print_config
+from config import CONFIG, print_config, write_config
 
 
 class TestAgent():
@@ -32,9 +32,9 @@ class TestAgent():
         self.num_images = num_images
 
         # initialize Environment
-        #relative_paths = np.loadtxt(CONFIG['imagefile_path'], dtype=str)
-        #images_base_path = os.path.dirname(CONFIG['imagefile_path'])
-        #absolute_paths = [images_base_path + i.strip('.') for i in relative_paths]
+        # relative_paths = np.loadtxt(CONFIG['imagefile_path'], dtype=str)
+        # images_base_path = os.path.dirname(CONFIG['imagefile_path'])
+        # absolute_paths = [images_base_path + i.strip('.') for i in relative_paths]
         with open(CONFIG['imagefile_path'], 'r') as file:
             data = json.loads(file.read())
             relative_paths = [img['file_name'] for img in data]
@@ -42,7 +42,7 @@ class TestAgent():
             absolute_paths = [images_base_path + i.strip('.') for i in relative_paths]
             bboxes = [[((bbox[0], bbox[1]), (bbox[2], bbox[3])) for bbox in img['bounding_boxes']] for img in data]
 
-        #bboxes = np.load(CONFIG['boxfile_path'], allow_pickle=True)
+        # bboxes = np.load(CONFIG['boxfile_path'], allow_pickle=True)
 
         self.env = TextLocEnv(absolute_paths, bboxes, CONFIG['gpu_id'], ior_marker=CONFIG['ior_marker'])
 
@@ -79,6 +79,8 @@ class TestAgent():
         evaluation_data_path = ''.join([CONFIG['resultdir_path'], '/evaluation_data'])
         os.makedirs(evaluation_data_path)
 
+        write_config()
+
         if visualize:
             print("Create Visualization")
             visualization_path = ''.join([CONFIG['resultdir_path'], '/visualization'])
@@ -96,7 +98,6 @@ class TestAgent():
         self.safe_data(evaluation_data_path + '/actions_per_image', self.actions_per_image)
 
         self.save_evaluation(evaluation_data_path)
-
 
     def safe_data(self, path, data):
         with open(path + '.txt', 'w') as f:
@@ -140,21 +141,8 @@ class TestAgent():
                 if timeouts == 0:
                     state = self.env.reset(stay_on_image=True, add_random_iors=False)
                 else:
-                    # reset initial bbox with 75% size of whole image frame
-                    # adjusted corners
-                    left = int(self.env.episode_image.width * 0.25)
-                    top = int(self.env.episode_image.height * 0.25)
-                    right = int(self.env.episode_image.width * 0.75)
-                    bottom = int(self.env.episode_image.height * 0.75)
-                    if timeouts == 1:
-                        bbox = np.array([0, 0, right, bottom])
-                    elif timeouts == 2:
-                        bbox = np.array([0, top, right, self.env.episode_image.height])
-                    elif timeouts == 3:
-                        bbox = np.array([left, top, self.env.episode_image.width, self.env.episode_image.height])
-                    elif timeouts == 4:
-                        bbox = np.array([left, 0, self.env.episode_image.width, bottom])
-                    state = self.env.reset(stay_on_image=True, start_bbox=bbox, add_random_iors=False)
+                    state = self.env.reset(stay_on_image=True, start_bbox=self.calculate_reset_box(timeouts),
+                                           add_random_iors=False)
 
             # save all actions on one image together
             self.actions_per_image.append(image_actions)
@@ -166,6 +154,35 @@ class TestAgent():
             if after_image_callback:
                 after_image_callback(n)
 
+    def calculate_reset_box(self, timeouts):
+        if CONFIG['reset_mode'] == 'corners':
+            left = int(self.env.episode_image.width * 0.25)
+            top = int(self.env.episode_image.height * 0.25)
+            right = int(self.env.episode_image.width * 0.75)
+            bottom = int(self.env.episode_image.height * 0.75)
+            if timeouts == 1:
+                return np.array([0, 0, right, bottom])
+            elif timeouts == 2:
+                return np.array([0, top, right, self.env.episode_image.height])
+            elif timeouts == 3:
+                return np.array([left, top, self.env.episode_image.width, self.env.episode_image.height])
+            elif timeouts == 4:
+                return np.array([left, 0, self.env.episode_image.width, bottom])
+
+        elif CONFIG['reset_mode'] == 'bars':
+            height_quarter = int(self.env.episode_image.height / 4)
+            height_third = int(self.env.episode_image.height / 3)
+
+            if timeouts == 1:
+                return np.array([0, 0, self.env.episode_image.width, height_third])
+            elif timeouts == 2:
+                return np.array([0, height_quarter, self.env.episode_image.width, height_quarter + height_third])
+            elif timeouts == 3:
+                return np.array(
+                    [0, 2 * height_quarter, self.env.episode_image.width, 2 * height_quarter + height_third])
+            elif timeouts == 4:
+                return np.array(
+                    [0, 3 * height_quarter, self.env.episode_image.width, 3 * height_quarter + height_third])
 
     def visualize(self, visualization_path):
         frames = []
@@ -223,28 +240,31 @@ class TestAgent():
         sorted_ious = sorted(self.flatten(self.ious_per_image))
         return statistics.median(sorted_ious)
 
-
     def min_num_actions(self):
         if self.image_actions_counts == []:
-            self.image_actions_counts = [sum(len(actions) for actions in reset_actions) for reset_actions in self.actions_per_image]
+            self.image_actions_counts = [sum(len(actions) for actions in reset_actions) for reset_actions in
+                                         self.actions_per_image]
 
         return min(self.image_actions_counts)
 
     def max_num_actions(self):
         if self.image_actions_counts == []:
-            self.image_actions_counts = [sum(len(actions) for actions in reset_actions) for reset_actions in self.actions_per_image]
+            self.image_actions_counts = [sum(len(actions) for actions in reset_actions) for reset_actions in
+                                         self.actions_per_image]
 
         return max(self.image_actions_counts)
 
     def mean_num_actions(self):
         if self.image_actions_counts == []:
-            self.image_actions_counts = [sum(len(actions) for actions in reset_actions) for reset_actions in self.actions_per_image]
+            self.image_actions_counts = [sum(len(actions) for actions in reset_actions) for reset_actions in
+                                         self.actions_per_image]
 
         return statistics.mean(self.image_actions_counts)
 
     def median_num_actions(self):
         if self.image_actions_counts == []:
-            self.image_actions_counts = [sum(len(actions) for actions in reset_actions) for reset_actions in self.actions_per_image]
+            self.image_actions_counts = [sum(len(actions) for actions in reset_actions) for reset_actions in
+                                         self.actions_per_image]
 
         sorted_actions_counts = sorted(self.image_actions_counts)
         return statistics.median(sorted_actions_counts)
@@ -257,7 +277,6 @@ class TestAgent():
         return result
 
 
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('num_images', nargs=1, type=int, help='Path to config file', default=100)
@@ -265,4 +284,3 @@ if __name__ == '__main__':
     args, _ = parser.parse_known_args()
 
     agent = TestAgent(num_images=args.num_images[0], visualize=args.visualize)
-
