@@ -36,7 +36,7 @@ class TestAgent():
         self.env = TextLocEnv(absolute_paths, bboxes, CONFIG['gpu_id'], ior_marker=CONFIG['ior_marker'])
 
         # Initialize Agent
-        q_func = chainerrl.q_functions.SingleModelStateQFunctionWithDiscreteAction(CustomModel(9))
+        q_func = chainerrl.q_functions.SingleModelStateQFunctionWithDiscreteAction(CustomModel(10))
         optimizer = chainer.optimizers.Adam(eps=1e-2)
         optimizer.setup(q_func)
         replay_buffer = chainerrl.replay_buffer.ReplayBuffer(capacity=CONFIG['replay_buffer_capacity'])
@@ -95,55 +95,37 @@ class TestAgent():
         for n in range(self.num_images):
             print('starting image with index: ' + str(n))
 
-            state = self.env.reset(image_index=n, add_random_iors=False)
+            # state = self.env.reset(image_index=n, add_random_iors=False)
+            state = self.env.reset(image_index=n)
 
             image_ious = []
             image_rewards = []
             image_actions = []
             timeouts = 0
 
-            while timeouts <= 4:  # search for more words
-                done = False
-                steps = 0
-                episode_actions = []
+            # while timeouts <= 4:  # search for more words
+            finish = False
+            steps = 0
+            episode_actions = []
 
-                while not done:  # take more steps
-                    if steps == CONFIG['timeout']:
-                        # timeout when 40 steps reached and no trigger done
-                        timeouts += 1
-                        break
+            while not finish:  # take more steps
+                if before_step_callback:
+                    before_step_callback()
 
-                    if before_step_callback:
-                        before_step_callback()
+                action = self.agent.act(state)
+                episode_actions.append(action)
+                state, reward, done, info = self.env.step(action)
+                finish = info['finish']
+                steps = steps + 1
+                if done:
+                    state = self.env.reset(image_index=n)
+                    image_ious.append(self.env.iou)
+                    image_rewards.append(reward)
+                    image_actions.append(episode_actions)
 
-                    action = self.agent.act(state)
-                    episode_actions.append(action)
-                    state, reward, done, info = self.env.step(action)
-
-                    if done:
-                        image_ious.append(self.env.iou)
-                        image_rewards.append(reward)
-                        image_actions.append(episode_actions)
-                    steps += 1
-
-                if timeouts == 0:
-                    state = self.env.reset(stay_on_image=True, add_random_iors=False)
-                else:
-                    # reset initial bbox with 75% size of whole image frame
-                    # adjusted corners
-                    left = int(self.env.episode_image.width * 0.25)
-                    top = int(self.env.episode_image.height * 0.25)
-                    right = int(self.env.episode_image.width * 0.75)
-                    bottom = int(self.env.episode_image.height * 0.75)
-                    if timeouts == 1:
-                        bbox = np.array([0, 0, right, bottom])
-                    elif timeouts == 2:
-                        bbox = np.array([0, top, right, self.env.episode_image.height])
-                    elif timeouts == 3:
-                        bbox = np.array([left, top, self.env.episode_image.width, self.env.episode_image.height])
-                    elif timeouts == 4:
-                        bbox = np.array([left, 0, self.env.episode_image.width, bottom])
-                    state = self.env.reset(stay_on_image=True, start_bbox=bbox, add_random_iors=False)
+                elif steps == 400:
+                    self.env.finish = True
+                    finish = True
 
             # save all actions on one image together
             self.actions_per_image.append(image_actions)
