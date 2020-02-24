@@ -21,7 +21,6 @@ def load_config(path=None):
 
     # data and paths
     CONFIG['imagefile_path'] = _configparser.get('agent', 'imagefile_path', fallback='../generated_data/image_locations.txt')
-    CONFIG['boxfile_path'] = _configparser.get('agent', 'boxfile_path', fallback='../generated_data/bounding_boxes.npy')
     CONFIG['resultdir_path'] = _configparser.get('agent', 'resultdir_path', fallback='./results')
     CONFIG['agentdir_path'] = _configparser.get('agent', 'agentdir_path', fallback='./agent')
 
@@ -52,23 +51,12 @@ def load_config(path=None):
     CONFIG['use_tensorboard'] = _configparser.getboolean('agent', 'use_tensorboard', fallback=False)
 
     # eval
-    CONFIG['save_eval'] = _configparser.getboolean('agent', 'save_eval', fallback=False)
-    CONFIG['pred_bboxes'] = _configparser.get('agent', 'pred_bboxes', fallback='./pred_bboxes.npy')
-    CONFIG['pred_labels'] = _configparser.get('agent', 'pred_labels', fallback='./pred_labels.npy')
-    CONFIG['pred_scores'] = _configparser.get('agent', 'pred_scores', fallback='./pred_scores.npy')
-    CONFIG['gt_bboxes'] = _configparser.get('agent', 'gt_bboxes', fallback='./gt_bboxes.npy')
-    CONFIG['gt_labels'] = _configparser.get('agent', 'gt_labels', fallback='./gt_labels.npy')
     CONFIG['iou_threshold'] = _configparser.getfloat('agent', 'iou_threshold', fallback=0.5)
 
-    # choose reward function
-    CONFIG['reward_function'] = _configparser.get('agent', 'reward_function', fallback='single')
-    # the form of the ior marker
+    CONFIG['reward_function'] = _configparser.get('agent', 'reward_function', fallback='sum')
     CONFIG['ior_marker'] = _configparser.get('agent', 'ior_marker', fallback='box')
-    # Timeout of agent while testing
     CONFIG['timeout'] = _configparser.getint('agent', 'timeout', fallback=40)
-    # Timeout of agent while testing
     CONFIG['reset_mode'] = _configparser.get('agent', 'reset_mode', fallback='corners')
-    # Timeout of agent while testing
     CONFIG['enlarge_bboxes'] = _configparser.getboolean('agent', 'enlarge_bboxes', fallback=False)
 
     # if set, override config w/ command line arguments

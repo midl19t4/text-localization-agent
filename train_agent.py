@@ -19,18 +19,10 @@ from tensorboard_gradient_histogram import TensorboardGradientPlotter
 
 
 """
-Set arguments w/ config file (--config) or cli
-:gpu_id :imagefile_path :boxfile_path :resultdir_path :start_epsilon :end_epsilon :decay_steps \
-:replay_buffer_capacity :gamma :replay_start_size :update_interval :target_update_interval :steps \
-:steps :eval_n_episodes :train_max_episode_len :eval_interval
+Set arguments w/ config file (--config)
 """
 def main():
     print_config()
-
-    #relative_paths = np.loadtxt(CONFIG['imagefile_path'], dtype=str)
-    #images_base_path = os.path.dirname(CONFIG['imagefile_path'])
-    #absolute_paths = [images_base_path + i.strip('.') for i in relative_paths]
-    #bboxes = np.load(CONFIG['boxfile_path'], allow_pickle=True)
 
     with open(CONFIG['imagefile_path'], 'r') as file:
         data = json.loads(file.read())

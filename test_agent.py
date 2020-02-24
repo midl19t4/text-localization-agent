@@ -42,8 +42,6 @@ class TestAgent():
             absolute_paths = [images_base_path + i.strip('.') for i in relative_paths]
             bboxes = [[((bbox[0], bbox[1]), (bbox[2], bbox[3])) for bbox in img['bounding_boxes']] for img in data]
 
-        # bboxes = np.load(CONFIG['boxfile_path'], allow_pickle=True)
-
         self.env = TextLocEnv(absolute_paths, bboxes, CONFIG['gpu_id'], ior_marker=CONFIG['ior_marker'])
 
         # Initialize Agent

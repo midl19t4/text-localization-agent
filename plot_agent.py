@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from config import CONFIG, print_config
 
 
-class VisualizeAgent():
+class PlotAgent:
     def __init__(self):
         self.action_meanings = {
             0: 'right',
@@ -174,7 +174,7 @@ class VisualizeAgent():
     def precision(self):
         precisions = []
         for ious in self.ious_per_image:
-            tp = len([iou for iou in ious if iou > 0.5])
+            tp = len([iou for iou in ious if iou > CONFIG['iou_threshold']])
             fp = len(ious) - tp
             precision = tp / (tp + fp) if tp + fp > 0 else 0
             precisions.append(precision)
@@ -185,7 +185,7 @@ class VisualizeAgent():
     def recall(self):
         recalls = []
         for ious, not_found_words in zip(self.ious_per_image, self.not_found_words_per_image):
-            tp = len([iou for iou in ious if iou > 0.5])
+            tp = len([iou for iou in ious if iou > CONFIG['iou_threshold']])
             fn = not_found_words
 
             recall = tp / (tp + fn) if tp + fn > 0 else 0
@@ -208,4 +208,4 @@ class VisualizeAgent():
             file.write(f"Median recall:\t{statistics.median(recalls)}\n")
 
 if __name__ == '__main__':
-    VisualizeAgent()
+    PlotAgent()

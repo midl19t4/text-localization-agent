@@ -1,10 +1,8 @@
 chainerrl==0.7.0
-chainer
-numpy
-click
-Pillow
+chainer==7.1.0
+numpy==1.15.4
+click==7.0
+Pillow==5.3.0
 tensorboard-chainer
-chainercv
-matplotlib
-tqdm
-cupy
+matplotlib==3.1.2
+cupy==7.1.0
