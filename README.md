@@ -24,9 +24,10 @@ Training an agent requires two files:
 Overview of executable python scripts:
 |File|Purpose|Example|
 |---|---|---|
-|`train_agent.py`| Train the agent| `python3 train_agent.py --config example.ini` |
-|`test_agent.py`| Test the agent with the first `n` images (the evaluation data is saved under `<resultdir_path>/evaluation_data`)| `python3 test_agent.py 1000 --config example.ini` |
-|`plot_agent.py`| Creates plots of the agents performance based on the output of `test_agent.py` (this separation is done to allow for additional evaluation of the raw testing data after training, the plots are saved under `<resultdir_path>/plots`)| `python3 plot_agent.py --config example.ini` |
+|`train_agent.py`| Train the agent| `python train_agent.py --config example.ini` |
+|`test_agent.py`| Test the agent with the first `n` images (the evaluation data is saved under `<resultdir_path>/evaluation_data`)| `python test_agent.py 1000 --config example.ini` |
+|`plot_agent.py`| Creates plots of the agents performance based on the output of `test_agent.py` (this separation is done to allow for additional evaluation of the raw testing data after training, the plots are saved under `<resultdir_path>/plots`)| `python plot_agent.py --config example.ini` |
+|`plot_multiple_agents.py`| Creates combined plots of multiple agents (for more information see comment in the file) | `python plot_multiple_agents.py` |
 
 ## TensorBoard
 
